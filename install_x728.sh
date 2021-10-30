@@ -56,6 +56,7 @@ sudo sed -e '/button/ s/^#*/#/' -i /etc/rc.local
 
 echo '#!/bin/bash
 
+# Button is GPIO13 in 1.x, GPIO26 in 2.x
 BUTTON=26
 
 echo "$BUTTON" > /sys/class/gpio/export;
@@ -76,7 +77,7 @@ echo "X728 Shutting down..."
 echo "0" > /sys/class/gpio/gpio$BUTTON/value
 ' > /usr/local/bin/x728softsd.sh
 sudo chmod +x /usr/local/bin/x728softsd.sh
-sudo echo "alias x728off='sudo x728softsd.sh'" >> /home/pi/.bashrc
+sudo echo "alias x728off='sudo x728softsd.sh'" >> $HOME/.bashrc
 
 #X728 Battery voltage & precentage reading
 #!/bin/bash
@@ -119,7 +120,7 @@ def readCapacity(bus):
      return capacity
 
 bus = smbus.SMBus(1) # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
-'> /home/pi/x728bat.py
+'> $HOME/x728bat.py
 if [ $PY_VERSION -eq 3 ]; then
     echo '
 while True:
@@ -142,7 +143,7 @@ while True:
         GPIO.output(GPIO_PORT, GPIO.LOW)
 
  time.sleep(2)
-' >> /home/pi/x728bat.py
+' >> $HOME/x728bat.py
 else
     echo '
 while True:
@@ -162,9 +163,9 @@ while True:
          time.sleep(3)
          GPIO.output(GPIO_PORT, GPIO.LOW)
  time.sleep(2)
-' >> /home/pi/x728bat.py
+' >> $HOME/x728bat.py
 fi
-sudo chmod +x /home/pi/x728bat.py
+sudo chmod +x $HOME/x728bat.py
 
 #X728 AC Power loss / power adapter failture detection
 #!/bin/bash
@@ -173,24 +174,28 @@ sudo sed -e '/button/ s/^#*/#/' -i /etc/rc.local
 
 echo '#!/usr/bin/env python
 import RPi.GPIO as GPIO
+import time
 
+PLD_PIN = 6
+BUZZER_PIN = 20
+GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(6, GPIO.IN)
+GPIO.setup(PLD_PIN, GPIO.IN)
+GPIO.setup(BUZZER_PIN, GPIO.OUT)
 
-def my_callback(channel):
-    if GPIO.input(6):     # if port 6 == 1
-        print "---AC Power Loss OR Power Adapter Failure---"
-    else:                  # if port 6 != 1
-        print "---AC Power OK,Power Adapter OK---"
+while True:
+    i = GPIO.input(PLD_PIN)
+    if i == 0:
+        print("AC Power OK")
+        GPIO.output(BUZZER_PIN, 0)
+    elif i == 1:
+        print("Power Supply A/C Lost")
+        GPIO.output(BUZZER_PIN, 1)
+        time.sleep(0.1)
+        GPIO.output(BUZZER_PIN, 0)
+        time.sleep(0.1)
 
-GPIO.add_event_detect(6, GPIO.BOTH, callback=my_callback)
-
-print "1.Make sure your power adapter is connected"
-print "2.Disconnect and connect the power adapter to test"
-print "3.When power adapter disconnected, you will see: AC Power Loss or Power Adapter Failure"
-print "4.When power adapter disconnected, you will see: AC Power OK, Power Adapter OK"
-
-raw_input("Testing Started")
-' > /home/pi/x728pld.py
-sudo chmod +x /home/pi/x728pld.py
+    time.sleep(1)
+' > $HOME/x728pld.py
+sudo chmod +x $HOME/x728pld.py
 
