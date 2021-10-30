@@ -44,15 +44,15 @@ while [ 1 ]; do
       exit
     fi
   fi
-done' > /etc/x728pwr.sh
-sudo chmod +x /etc/x728pwr.sh
-sudo sed -i '$ i /etc/x728pwr.sh &' /etc/rc.local
+done' > x728pwr.sh
+chmod +x x728pwr.sh
+#sudo sed -i '$ i x728pwr.sh &' /etc/rc.local
 
 
 #X728 full shutdown through Software
 #!/bin/bash
 
-sudo sed -e '/button/ s/^#*/#/' -i /etc/rc.local
+#sudo sed -e '/button/ s/^#*/#/' -i /etc/rc.local
 
 echo '#!/bin/bash
 
@@ -75,9 +75,9 @@ echo "X728 Shutting down..."
 
 #restore GPIO 26
 echo "0" > /sys/class/gpio/gpio$BUTTON/value
-' > /usr/local/bin/x728softsd.sh
-sudo chmod +x /usr/local/bin/x728softsd.sh
-sudo echo "alias x728off='sudo x728softsd.sh'" >> $HOME/.bashrc
+' > x728softsd.sh
+chmod +x x728softsd.sh
+#sudo echo "alias x728off='sudo x728softsd.sh'" >> $HOME/.bashrc
 
 #X728 Battery voltage & precentage reading
 #!/bin/bash
@@ -120,7 +120,7 @@ def readCapacity(bus):
      return capacity
 
 bus = smbus.SMBus(1) # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
-'> $HOME/x728bat.py
+'> x728bat.py
 if [ $PY_VERSION -eq 3 ]; then
     echo '
 while True:
@@ -143,7 +143,7 @@ while True:
         GPIO.output(GPIO_PORT, GPIO.LOW)
 
  time.sleep(2)
-' >> $HOME/x728bat.py
+' >> x728bat.py
 else
     echo '
 while True:
@@ -163,14 +163,14 @@ while True:
          time.sleep(3)
          GPIO.output(GPIO_PORT, GPIO.LOW)
  time.sleep(2)
-' >> $HOME/x728bat.py
+' >> x728bat.py
 fi
-sudo chmod +x $HOME/x728bat.py
+chmod +x x728bat.py
 
 #X728 AC Power loss / power adapter failture detection
 #!/bin/bash
 
-sudo sed -e '/button/ s/^#*/#/' -i /etc/rc.local
+#sudo sed -e '/button/ s/^#*/#/' -i /etc/rc.local
 
 echo '#!/usr/bin/env python
 import RPi.GPIO as GPIO
@@ -196,6 +196,6 @@ while True:
         time.sleep(0.1)
 
     time.sleep(1)
-' > $HOME/x728pld.py
-sudo chmod +x $HOME/x728pld.py
+' > x728pld.py
+chmod +x x728pld.py
 
